@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "32016133613",
+    "firebase_url": "https://tempdashboard-5d96a-default-rtdb.firebaseio.com",
+    "project_id": "tempdashboard-5d96a",
+    "storage_bucket": "tempdashboard-5d96a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32016133613:android:744d0665c41aab2ce58be4",
+        "android_client_info": {
+          "package_name": "com.example.tempapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxxA-roH8l22K44T2SWTKoiKaFTtQs77I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
