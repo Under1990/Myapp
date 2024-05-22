@@ -1,31 +1,27 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tempapp/appManager/localstorage_manager.dart';
 import 'package:tempapp/appManager/time_manager.dart';
-import 'package:tempapp/model/login_model.dart';
 import 'package:tempapp/model/noti_model.dart';
 import 'package:tempapp/model/sensor1_model.dart';
+import 'package:tempapp/model/sensor2_model.dart';
 
+import '../NotificationManager.dart';
 import '../main.dart';
-import '../model/sensor2_model.dart';
 
 class RealtimeDatabase {
   static String VALUETEMP = "";
   static String VALUELOGINDATA = "";
-
   static FirebaseDatabase realTimeDataBaseDomain = FirebaseDatabase.instanceFor(
       app: Firebase.app(),
       databaseURL: 'https://tempdashboard-5d96a-default-rtdb.firebaseio.com/');
-
   static StreamSubscription<DatabaseEvent>? refDataTemp1;
-
   static StreamSubscription<DatabaseEvent>? refDataTemp2;
 
-  ///ดึงค่าจากการอ่าน realtime database
   static Future dataTemp() async {
     await realTimeDataBaseDomain
         .ref('data/data/sensor1')
@@ -46,100 +42,113 @@ class RealtimeDatabase {
     });
   }
 
-  ///Trigger การแจ้งเตือนของ Refrig1
   static dataTempSensorOnChildChanged() async {
-    int dataLocalToInt = 0;
-    int dataLocalToInt2 = 0;
-    int dataOnValue = 0;
-    int dataOnValue2 = 0;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    realTimeDataBaseDomain.ref('data/data/sensor1').get().then((value) {
-      if (value.value != null) {
-        refDataTemp1 = realTimeDataBaseDomain
-            .ref('data/data/')
-            .onChildChanged
-            .listen((event) async {
-          if (event.snapshot.key == "sensor1") {
-            dataLocalToInt = int.parse(prefs.getString('MAXVALUETEMP1') ?? "");
-            dataOnValue = int.parse(event.snapshot.value.toString());
-            if (dataOnValue > dataLocalToInt) {
-              NotiModel dataNoti = NotiModel();
-              dataNoti.title = "แจ้งเตือนอุณหภูมิ Refrigerator 1";
-              dataNoti.description =
-                  "ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้";
-              dataNoti.dateInput = TimeManager.timeTriggerValue;
-              LocalStorageManager.saveNotiData(dataNoti);
-              _showAlertDialogError('แจ้งเตือนอุณหภูมิ Refrigerator 1',
-                  'ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้');
-            }
-          } else {
-            dataLocalToInt = int.parse(prefs.getString('MAXVALUETEMP2') ?? "");
-            dataOnValue2 = int.parse(event.snapshot.value.toString());
-            if (dataOnValue2 > dataLocalToInt2) {
-              NotiModel dataNoti = NotiModel();
-              dataNoti.title = "แจ้งเตือนอุณหภูมิ Refrigerator 2";
-              dataNoti.description =
-                  "ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้";
-              dataNoti.dateInput = TimeManager.timeTriggerValue;
-              LocalStorageManager.saveNotiData(dataNoti);
-              _showAlertDialogError('แจ้งเตือนอุณหภูมิ Refrigerator 2',
-                  'ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้');
-            }
-          }
-
-          // if (event.snapshot.value != value.value) {
-          //   Sensor1DataModel data = Sensor1DataModel();
-          //   data.tempData = event.snapshot.value;
-          //   // data.date = jsonEncode({DateTime.now()});
-          //   print('data ${data.toJson()}');
-          //   await LocalStorageManager.saveDataSensor1(data);
-          // }
-        });
+    realTimeDataBaseDomain.ref('data/data').onChildChanged.listen((event) async {
+      int maxTempSensor1 = int.parse(prefs.getString('MAXVALUETEMP1') ?? "0");
+      int minTempSensor1 = int.parse(prefs.getString('MINVALUETEMP1') ?? "0");
+      int maxTempSensor2 = int.parse(prefs.getString('MAXVALUETEMP2') ?? "0");
+      int minTempSensor2 = int.parse(prefs.getString('MINVALUETEMP2') ?? "0");
+      
+      if (event.snapshot.key == "sensor1") {
+        int dataOnValue1 = int.parse(event.snapshot.value.toString());
+        await checkTemperatureNotification(dataOnValue1, maxTempSensor1, minTempSensor1, "sensor1", "Refrigerator 1");
+      } else if (event.snapshot.key == "sensor2") {
+        int dataOnValue2 = int.parse(event.snapshot.value.toString());
+        await checkTemperatureNotification(dataOnValue2, maxTempSensor2, minTempSensor2, "sensor2", "Refrigerator 2");
       }
     });
   }
 
-  ///Trigger การแจ้งเตือนของ Refrig1
-  static dataTempSensor2OnChildChanged() async {
-    int dataLocalToInt = 0;
-    int dataOnValue = 0;
+  static Future<void> checkTemperatureNotification(int dataOnValue, int maxTemp, int minTemp, String sensorKey, String sensorName) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    dataLocalToInt = int.parse(prefs.getString('MAXVALUETEMP2') ?? "");
-    realTimeDataBaseDomain.ref('data/data/sensor2').get().then((value) {
-      if (value.value != null) {
-        refDataTemp2 = realTimeDataBaseDomain
-            .ref('data/data/sensor2')
-            .onValue
-            .listen((event) async {
-          dataOnValue = int.parse(event.snapshot.value.toString());
-          if (dataOnValue > dataLocalToInt) {
-            NotiModel dataNoti = NotiModel();
-            dataNoti.title = "แจ้งเตือนอุณหภูมิ Refrigerator 2";
-            dataNoti.description =
-                "ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้";
-            dataNoti.dateInput = TimeManager.timeTriggerValue;
-            LocalStorageManager.saveNotiData(dataNoti);
-            _showAlertDialogError('แจ้งเตือนอุณหภูมิ Refrigerator 2',
-                'ค่าของอุณหภูมิเกินอุณหภูมิสูงสุดในปัจจุบันที่กำหนดไว้');
-          }
-          // print('datasensor2 ${event.snapshot.value}');
-          // if (event.snapshot.value != value.value) {
-          //   Sensor2DataModel data = Sensor2DataModel();
-          //   data.tempData = event.snapshot.value;
-          //   data.date = DateTime.now();
-          //   await LocalStorageManager.saveDataSensor2(event.snapshot.value);
-          // }
-        });
+    DateTime now = DateTime.now();
+
+    String lastHighTempKey = '${sensorKey}_last_high_temp';
+    String lastLowTempKey = '${sensorKey}_last_low_temp';
+
+    DateTime? lastHighTempNotification = prefs.containsKey(lastHighTempKey)
+        ? DateTime.parse(prefs.getString(lastHighTempKey)!)
+        : null;
+    DateTime? lastLowTempNotification = prefs.containsKey(lastLowTempKey)
+        ? DateTime.parse(prefs.getString(lastLowTempKey)!)
+        : null;
+
+    if (dataOnValue > maxTemp) {
+      bool shouldNotify = true;
+      if (lastHighTempNotification != null && now.difference(lastHighTempNotification).inMinutes < 5) {
+        shouldNotify = false;
       }
-    });
+      if (shouldNotify) {
+        NotiModel dataNoti = NotiModel(
+          title: "แจ้งเตือนอุณหภูมิ $sensorName",
+          description:
+              "อุณหภูมิสูง\nค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+          dateInput: TimeManager.timeTriggerValue,
+        );
+        await LocalStorageManager.saveNotiData(dataNoti);
+        NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
+        _showAlertDialogError(
+            'อุณหภูมิสูง $sensorName',
+            "ค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+            CupertinoColors.systemRed);
+        prefs.setString(lastHighTempKey, now.toIso8601String());
+      }
+    } else if (dataOnValue < minTemp) {
+      bool shouldNotify = true;
+      if (lastLowTempNotification != null && now.difference(lastLowTempNotification).inMinutes < 5) {
+        shouldNotify = false;
+      }
+      if (shouldNotify) {
+        NotiModel dataNoti = NotiModel(
+          title: "แจ้งเตือนอุณหภูมิ $sensorName",
+          description:
+              "อุณหภูมิต่ำ\nค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+          dateInput: TimeManager.timeTriggerValue,
+        );
+        await LocalStorageManager.saveNotiData(dataNoti);
+        NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
+        _showAlertDialogError(
+            'อุณหภูมิต่ำ $sensorName',
+            "ค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+            CupertinoColors.systemYellow);
+        prefs.setString(lastLowTempKey, now.toIso8601String());
+      }
+    }
   }
 
-  static _showAlertDialogError(String title, String content) {
+  static _showAlertDialogError(String title, String content, Color bgColor) {
     showCupertinoModalPopup(
       context: GlobalVariable.navState.currentContext!,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: Text(title),
-        content: Text(content),
+        title: Container(
+          color: bgColor,
+          padding: EdgeInsets.all(10),
+          child: Text(
+            title,
+            style: TextStyle(color: CupertinoColors.white),
+          ),
+        ),
+        content: Container(
+          color: bgColor,
+          padding: EdgeInsets.all(10),
+          child: Text(
+            content,
+            style: TextStyle(color: CupertinoColors.white),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: Text(
+              "ตกลง",
+              style: TextStyle(color: CupertinoColors.white),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
     );
   }

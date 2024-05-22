@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tempapp/appManager/time_manager.dart';
 import 'package:tempapp/settingmaxtemp/setting_maxtemp_page.dart';
-import 'package:tempapp/test_gradient.dart';
 
-import 'appManager/firebase_manager.dart';
-import 'appManager/localstorage_manager.dart';
 import 'appManager/view_manager.dart';
 
 

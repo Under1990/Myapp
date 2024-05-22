@@ -93,7 +93,7 @@ class _SettingPageState extends State<SettingPage> {
                                   height: 25,
                                 )),
                             Text(
-                              'ตั้งค่าสูงสุดของการแจ้งเตือนอุณหภูมิ',
+                              'ตั้งค่าการแจ้งเตือนอุณหภูมิ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],

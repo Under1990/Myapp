@@ -1,17 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tempapp/widget/loading_btn.dart';
 
 import '../appManager/dialog_manager.dart';
-import '../appManager/error_manager.dart';
-import '../appManager/firebase_manager.dart';
 import '../appManager/view_manager.dart';
-import '../model/login_model.dart';
-import '../model/user_model.dart';
-import '../widget/loading_btn.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -50,39 +44,73 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  ///ฟังก์ชั่นการลงทะเบียนด้วยอีเมลและรหัสผ่าน
   void _register() async {
     setState(() {
       isLoadingBtn = true;
     });
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _controllerEmailTextField.text.trim(),
         password: _controllerPasswordTextField.text.trim(),
       );
-      await FirebaseFirestore.instanceFor(app: Firebase.app())
-          .collection('Users')
-          .doc(userCredential.user!.uid)
-          .set({
+
+      await FirebaseFirestore.instance.collection('Users').doc(userCredential.user!.uid).set({
         'username': _controllerUsernameTextField.text,
         'password': _controllerPasswordTextField.text,
         'email': _controllerEmailTextField.text,
         'phoneNo': _controllerPhoneNoTextField.text,
         'profile': ""
       });
+
+      if (userCredential.user != null && !userCredential.user!.emailVerified) {
+        await userCredential.user!.sendEmailVerification();
+        showDialogEmailSent();
+      } else {
+        showDialogSuccess();
+      }
+
       setState(() {
         isLoadingBtn = false;
       });
-      showDialogSuccess();
     } on FirebaseAuthException catch (e) {
       print('Failed to create user: ${e.message}');
-      isLoadingBtn = false;
-      _showAlertDialogError("เกิดข้อผิดพลาด", e.toString());
-      // Handle errors such as weak password, email already in use, etc.
+      setState(() {
+        isLoadingBtn = false;
+      });
+
+      if (e.code == 'email-already-in-use') {
+        _showAlertDialogError("เกิดข้อผิดพลาด", "อีเมลนี้ได้ถูกใช้งานแล้ว");
+      } else if (e.code == 'invalid-email') {
+        _showAlertDialogError("เกิดข้อผิดพลาด", "อีเมลไม่ถูกต้อง");
+      } else {
+        _showAlertDialogError("เกิดข้อผิดพลาด", e.message ?? "เกิดข้อผิดพลาด");
+      }
     } catch (e) {
       print('Unexpected error: $e');
+      setState(() {
+        isLoadingBtn = false;
+      });
     }
+  }
+
+  void showDialogEmailSent() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("ลงทะเบียนสำเร็จ"),
+          content: Text("กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันการสมัครสมาชิก."),
+          actions: <Widget>[
+            TextButton(
+              child: Text("ตกลง"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -111,15 +139,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      _usernameTextField(),
-                      _emailTextField(),
-                      _phoneNoTextField(),
-                      _passwordTextField()
-                    ],
-                  )),
+                key: formKey,
+                child: Column(
+                  children: [
+                    _usernameTextField(),
+                    _emailTextField(),
+                    _phoneNoTextField(),
+                    _passwordTextField()
+                  ],
+                )
+              ),
               _btnSignUp()
             ],
           ),
@@ -128,7 +157,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  ///ช่องกรอกอีเมล
   Widget _emailTextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 24),
@@ -159,7 +187,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.email,
@@ -197,7 +224,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  ///ช่องกรอกรหัสผ่าน
   Widget _passwordTextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 24),
@@ -229,7 +255,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.lock,
@@ -281,7 +306,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  ///ช่องกรอกชื่อ
   Widget _usernameTextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 24),
@@ -312,7 +336,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.person,
@@ -350,7 +373,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  ///ช่องกรอกเบอร์โทรศัพท์
   Widget _phoneNoTextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 24),
@@ -383,7 +405,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.phone,
@@ -421,50 +442,66 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  ///ปุ่มการลงทะเบียน
   Widget _btnSignUp() {
     return isLoadingBtn
         ? ButtonLoading()
-        : Container(
-            margin: EdgeInsets.only(top: 32),
-            child: Material(
-              child: InkWell(
-                onTap: () async {
-                  if (formKey.currentState!.validate()) {
-                    formKey.currentState!.save();
-                    usernameFocusNode.unfocus();
-                    passwordFocusNode.unfocus();
-                    emailFocusNode.unfocus();
-                    phoneNoFocusNode.unfocus();
-                    _register();
-                  }
-                },
-                child: Ink(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)]),
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    height: 60,
-                    child: Center(
-                      child: Text(
-                        "ลงทะเบียน",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: FontSizeManager().defaultSize,
-                            color: ColorManager().secondaryColor),
-                      ),
+        : Column(
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 32),
+          child: Material(
+            child: InkWell(
+              onTap: () async {
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
+                  usernameFocusNode.unfocus();
+                  passwordFocusNode.unfocus();
+                  emailFocusNode.unfocus();
+                  phoneNoFocusNode.unfocus();
+                  _register();
+                }
+              },
+              child: Ink(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)]),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  height: 60,
+                  child: Center(
+                    child: Text(
+                      "ลงทะเบียน",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: FontSizeManager().defaultSize,
+                          color: ColorManager().secondaryColor),
                     ),
                   ),
                 ),
               ),
             ),
-          );
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+          child: Text(
+            'เข้าสู่ระบบ',
+            style: TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: FontSizeManager().textMSize,
+              color: ColorManager().primaryColor,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  ///แจ้งเตือนเมื่อลงทะเบียนสำเร็จ
   showDialogSuccess() {
     showDialog(
         barrierDismissible: false,
@@ -509,7 +546,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-///ตรวจสอบว่ากรอกข้อมูลครบและถูกต้องหรือไม่
 class doubleFieldValidator {
   static String? validate(String? value) {
     if (value == null || value.isEmpty) {
@@ -519,21 +555,39 @@ class doubleFieldValidator {
     }
   }
 
-  ///ตรวจสอบรูปแบบอีเมล
   static String? validateEmail(String? value) {
-    final bool emailValid = RegExp(
-            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-        .hasMatch(value ?? "");
     if (value == null || value.isEmpty) {
       return "กรุณากรอกข้อมูล";
-    } else if (!emailValid) {
-      return "รูปแบบอีเมลไม่ถูกต้อง";
-    } else {
-      return null;
     }
+
+    final bool emailValid = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+"
+    ).hasMatch(value);
+
+    if (!emailValid) {
+      return "รูปแบบอีเมลไม่ถูกต้อง";
+    }
+
+    List<String> validDomains = [
+      'gmail.com',
+      'hotmail.com',
+      'yahoo.com',
+      'outlook.com'
+    ];
+
+    String domain = value.split('@').last;
+    if (!validDomains.contains(domain)) {
+      return "อีเมลไม่ถูกต้อง";
+    }
+
+    List<String> domainParts = domain.split('.');
+    if (domainParts.length < 2 || domainParts[1].isEmpty) {
+      return "รูปแบบอีเมลไม่ถูกต้อง";
+    }
+
+    return null;
   }
 
-  ///ตรวจสอบความยาวของเบอร์โทร
   static String? validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return "กรุณากรอกข้อมูล";

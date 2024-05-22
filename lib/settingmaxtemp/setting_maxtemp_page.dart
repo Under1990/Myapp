@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../appManager/dialog_manager.dart';
@@ -24,6 +22,10 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
   FocusNode setTemp1FocusNode = FocusNode();
   TextEditingController _controllerSetTemp2TextField = TextEditingController();
   FocusNode setTemp2FocusNode = FocusNode();
+  TextEditingController _controllerSetTemp3TextField = TextEditingController();
+  FocusNode setTemp3FocusNode = FocusNode();
+  TextEditingController _controllerSetTemp4TextField = TextEditingController();
+  FocusNode setTemp4FocusNode = FocusNode();
 
   @override
   void initState() {
@@ -35,7 +37,9 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
   getMaxTempData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _controllerSetTemp1TextField.text = prefs.getString('MAXVALUETEMP1') ?? "";
-    _controllerSetTemp2TextField.text = prefs.getString('MAXVALUETEMP2') ?? "";
+    _controllerSetTemp2TextField.text = prefs.getString('MINVALUETEMP1') ?? "";
+    _controllerSetTemp3TextField.text = prefs.getString('MAXVALUETEMP2') ?? "";
+    _controllerSetTemp4TextField.text = prefs.getString('MINVALUETEMP2') ?? "";
   }
 
   @override
@@ -50,19 +54,20 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
             extendBodyBehindAppBar: true,
             appBar: AppBar(
               backgroundColor: ColorManager().primaryColor,
-              // 1
               elevation: 0,
               leading: IconButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: Icon(Icons.arrow_back_ios_outlined,color: Colors.white,)),
+                  icon: Icon(
+                    Icons.arrow_back_ios_outlined,
+                    color: Colors.white,
+                  )),
               titleSpacing: 0.0,
               title: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Text(
-                  // textAlign: TextAlign.center,
-                  'ตั้งค่าสูงสุดของการแจ้งเตือนอุณหภูมิ',
+                  'ตั้งค่าการแจ้งเตือนอุณหภูมิ',
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -72,9 +77,10 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
             ),
             body: GestureDetector(
               onTap: () {
-                print('tabbbbb');
                 setTemp1FocusNode.unfocus();
                 setTemp2FocusNode.unfocus();
+                setTemp3FocusNode.unfocus();
+                setTemp4FocusNode.unfocus();
               },
               child: SafeArea(
                 child: Container(
@@ -93,7 +99,6 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
           );
   }
 
-
   Widget _setFormDashBoard() {
     return Container(
       color: Colors.transparent,
@@ -103,7 +108,7 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
           Visibility(
               visible: widget.refrig == "sensor1", child: _setTemp1TextField()),
           Visibility(
-              visible: widget.refrig != "sensor1", child: _setTemp2TextField()),
+              visible: widget.refrig == "sensor2", child: _setTemp2TextField()),
           _btnSave()
         ],
       ),
@@ -113,7 +118,6 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
   Widget _setTemp1TextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 16),
-      // color: Colors.red,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +125,7 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
           Container(
             padding: EdgeInsets.only(bottom: 8),
             child: Text(
-              "ตั้งค่าสูงสุดของ Refrigerator 1",
+              "High Temp 1",
               style: TextStyle(
                   fontWeight: FontWeight.normal,
                   fontSize: FontSizeManager().textLSize,
@@ -141,7 +145,6 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Image.asset(
                       'assets/icons/icon_temp.png',
@@ -151,6 +154,55 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
                     fillColor: ColorManager().primaryColor.withOpacity(0.05),
                     filled: true,
                     hintText: "กรุณาระบุอุณหภูมิสูงสุดที่ต้องการ",
+                    contentPadding: EdgeInsets.all(16),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                          color: ColorManager().primaryColor, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                          color: ColorManager().lineSeparate, width: 1),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16), // เพิ่มช่องว่างระหว่างช่องกรอกข้อมูล
+          Container(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              "Low Temp 1",
+              style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: FontSizeManager().textLSize,
+                  color: ColorManager().textColor),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  key: Key('temp2'),
+                  controller: _controllerSetTemp2TextField,
+                  focusNode: setTemp2FocusNode,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    fontSize: FontSizeManager().textLSize,
+                  ),
+                  cursorColor: ColorManager().primaryColor,
+                  textAlign: TextAlign.start,
+                  decoration: InputDecoration(
+                    prefixIcon: Image.asset(
+                      'assets/icons/icon_temp.png',
+                      scale: 15,
+                      color: ColorManager().primaryColor,
+                    ),
+                    fillColor: ColorManager().primaryColor.withOpacity(0.05),
+                    filled: true,
+                    hintText: "กรุณาระบุอุณหภูมิต่ำสุดที่ต้องการ",
                     contentPadding: EdgeInsets.all(16),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
@@ -175,7 +227,6 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
   Widget _setTemp2TextField() {
     return Container(
       padding: EdgeInsets.only(bottom: 16),
-      // color: Colors.red,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +234,7 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
           Container(
             padding: EdgeInsets.only(bottom: 8),
             child: Text(
-              "ตั้งค่าสูงสุดของ Refrigerator 2",
+              "High Temp 2",
               style: TextStyle(
                   fontWeight: FontWeight.normal,
                   fontSize: FontSizeManager().textLSize,
@@ -194,16 +245,15 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
             children: [
               Expanded(
                 child: TextFormField(
-                  key: Key('temp2'),
-                  controller: _controllerSetTemp2TextField,
-                  focusNode: setTemp2FocusNode,
+                  key: Key('temp3'),
                   keyboardType: TextInputType.number,
+                  controller: _controllerSetTemp3TextField,
+                  focusNode: setTemp3FocusNode,
                   style: TextStyle(
                     fontSize: FontSizeManager().textLSize,
                   ),
                   cursorColor: ColorManager().primaryColor,
                   textAlign: TextAlign.start,
-                  // validator: doubleFieldValidator.validate,
                   decoration: InputDecoration(
                     prefixIcon: Image.asset(
                       'assets/icons/icon_temp.png',
@@ -229,83 +279,147 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
               ),
             ],
           ),
+          SizedBox(height: 16), // เพิ่มช่องว่างระหว่างช่องกรอกข้อมูล
+          Container(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              "Low Temp 2 ",
+              style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: FontSizeManager().textLSize,
+                  color: ColorManager().textColor),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  key: Key('temp4'),
+                  controller: _controllerSetTemp4TextField,
+                  focusNode: setTemp4FocusNode,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    fontSize: FontSizeManager().textLSize,
+                  ),
+                  cursorColor: ColorManager().primaryColor,
+                  textAlign: TextAlign.start,
+                  decoration: InputDecoration(
+                    prefixIcon: Image.asset(
+                      'assets/icons/icon_temp.png',
+                      scale: 15,
+                      color: ColorManager().primaryColor,
+                    ),
+                    fillColor: ColorManager().primaryColor.withOpacity(0.05),
+                    filled: true,
+                    hintText: "กรุณาระบุอุณหภูมิต่ำสุดที่ต้องการ",
+                    contentPadding: EdgeInsets.all(16),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                          color: ColorManager().primaryColor, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                          color: ColorManager().lineSeparate, width: 1),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  ///ปุ่มการ save อุณหภูมิ
   Widget _btnSave() {
     return Container(
       margin: EdgeInsets.only(top: 32, left: 48, right: 48),
       child: Material(
         child: InkWell(
           onTap: () async {
-            ///ตรวจสอบว่ามีการกรอกค่าเดิมหรือไม่
             SharedPreferences prefs = await SharedPreferences.getInstance();
+            bool isTemp1Empty =
+                _controllerSetTemp1TextField.text.isEmpty &&
+                _controllerSetTemp2TextField.text.isEmpty;
+            bool isTemp2Empty =
+                _controllerSetTemp3TextField.text.isEmpty &&
+                _controllerSetTemp4TextField.text.isEmpty;
+
             if (widget.isDashBoard) {
               if (widget.refrig == "sensor1") {
-                if (_controllerSetTemp1TextField.text ==
-                    prefs.getString('MAXVALUETEMP1')) {
-                  showDialogSuccess('กรุณาเปลี่ยนแปลงค่าที่กำหนด', false, true);
-                } else if (_controllerSetTemp1TextField.text.isNotEmpty) {
-                  await prefs.setString(
-                      'MAXVALUETEMP1', _controllerSetTemp1TextField.text);
+                if (isTemp1Empty) {
                   showDialogSuccess(
-                      'บันทึกการกำหนดค่าสูงสุดของ Refrigerator 1 สำเร็จ',
-                      false,
-                      false);
-                }
-              } else {
-                if (_controllerSetTemp2TextField.text ==
-                    prefs.getString('MAXVALUETEMP2')) {
-                  showDialogSuccess('กรุณาเปลี่ยนแปลงค่าที่กำหนด', false, true);
+                    'กรุณากรอกข้อมูลที่ต้องการ',
+                    false,
+                    true,
+                  );
                 } else {
-                  await prefs.setString(
-                      'MAXVALUETEMP2', _controllerSetTemp2TextField.text);
+                  if (_controllerSetTemp1TextField.text.isNotEmpty) {
+                    await prefs.setString(
+                        'MAXVALUETEMP1', _controllerSetTemp1TextField.text);
+                  }
+                  if (_controllerSetTemp2TextField.text.isNotEmpty) {
+                    await prefs.setString(
+                        'MINVALUETEMP1', _controllerSetTemp2TextField.text);
+                  }
                   showDialogSuccess(
-                      'บันทึกการกำหนดค่าสูงสุดของ Refrigerator 2 สำเร็จ',
-                      false,
-                      false);
+                      'บันทึกค่าของ Refrigerator 1 สำเร็จ', false, false);
+                }
+              } else if (widget.refrig == "sensor2") {
+                if (isTemp2Empty) {
+                  showDialogSuccess(
+                    'กรุณากรอกข้อมูลที่ต้องการ',
+                    false,
+                    true,
+                  );
+                } else {
+                  if (_controllerSetTemp3TextField.text.isNotEmpty) {
+                    await prefs.setString(
+                        'MAXVALUETEMP2', _controllerSetTemp3TextField.text);
+                  }
+                  if (_controllerSetTemp4TextField.text.isNotEmpty) {
+                    await prefs.setString(
+                        'MINVALUETEMP2', _controllerSetTemp4TextField.text);
+                  }
+                  showDialogSuccess(
+                      'บันทึกค่าของ Refrigerator 2 สำเร็จ', false, false);
                 }
               }
             } else {
-              if (_controllerSetTemp1TextField.text.isNotEmpty &&
-                  _controllerSetTemp2TextField.text.isNotEmpty) {
-                await prefs.setString(
-                    'MAXVALUETEMP1', _controllerSetTemp1TextField.text);
-                await prefs.setString(
-                    'MAXVALUETEMP2', _controllerSetTemp2TextField.text);
+              if (isTemp1Empty && isTemp2Empty) {
                 showDialogSuccess(
-                    'บันทึกการกำหนดค่าสูงสุดของทั้งสอง Refrigerator สำเร็จ',
-                    false,
-                    false);
-              } else if (_controllerSetTemp1TextField.text.isNotEmpty) {
-                await prefs.setString(
-                    'MAXVALUETEMP1', _controllerSetTemp1TextField.text);
-                showDialogSuccess(
-                    'บันทึกการกำหนดค่าสูงสุดของ Refrigerator 1 สำเร็จ',
-                    false,
-                    false);
-              } else if (_controllerSetTemp2TextField.text.isNotEmpty) {
-                await prefs.setString(
-                    'MAXVALUETEMP2', _controllerSetTemp2TextField.text);
-                showDialogSuccess(
-                    'บันทึกการกำหนดค่าสูงสุดของ Refrigerator 2 สำเร็จ',
-                    false,
-                    false);
+                  'กรุณากรอกข้อมูลที่ต้องการ',
+                  false,
+                  true,
+                );
               } else {
-                showDialogSuccess(
-                    'กรุณาระบุค่าสูงสุดของ Refrigerator อย่างน้อย 1 ตัว',
-                    true,
-                    false);
+                if (_controllerSetTemp1TextField.text.isNotEmpty) {
+                  await prefs.setString(
+                      'MAXVALUETEMP1', _controllerSetTemp1TextField.text);
+                }
+                if (_controllerSetTemp2TextField.text.isNotEmpty) {
+                  await prefs.setString(
+                      'MINVALUETEMP1', _controllerSetTemp2TextField.text);
+                }
+                if (_controllerSetTemp3TextField.text.isNotEmpty) {
+                  await prefs.setString(
+                      'MAXVALUETEMP2', _controllerSetTemp3TextField.text);
+                }
+                if (_controllerSetTemp4TextField.text.isNotEmpty) {
+                  await prefs.setString(
+                      'MINVALUETEMP2', _controllerSetTemp4TextField.text);
+                }
+                showDialogSuccess('บันทึกการกำหนดค่าสูงสุดสำเร็จ', false, false);
               }
             }
           },
           child: Ink(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                  colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)]),
+                colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)],
+              ),
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
             child: Container(
@@ -315,9 +429,10 @@ class _SettingMaxTempPageState extends State<SettingMaxTempPage> {
                 child: Text(
                   "บันทึก",
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: FontSizeManager().defaultSize,
-                      color: ColorManager().secondaryColor),
+                    fontWeight: FontWeight.bold,
+                    fontSize: FontSizeManager().defaultSize,
+                    color: ColorManager().secondaryColor,
+                  ),
                 ),
               ),
             ),

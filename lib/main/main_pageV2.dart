@@ -1,17 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tempapp/appManager/localstorage_manager.dart';
 import 'package:tempapp/main/setting_page.dart';
 
 import '../appManager/firebase_manager.dart';
 import '../appManager/time_manager.dart';
 import '../appManager/view_manager.dart';
-import '../model/noti_model.dart';
 import '../navigation.dart';
+import 'chart_page.dart'; // เพิ่มการนำเข้า
 import 'notification_page.dart';
 
 class MainPageV2 extends StatefulWidget {
@@ -135,205 +132,212 @@ class _MainPageV2State extends State<MainPageV2> {
         curve: Curves.ease,
         duration: Duration(milliseconds: 200),
       ),
-      navBarStyle:
-          NavBarStyle.style15, // Choose the nav bar style with this property.
+      navBarStyle: NavBarStyle.style1, // เปลี่ยนจาก style15 เป็น style1
     );
   }
 
-  List<Widget> _buildScreens() {
-    return [
-      NotificationPage(
-        textAlert: textAlert,
-        descriptionNoti: descriptionNoti,
-        date: date,
-      ),
-      Stack(
-        children: [
-          Ink(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)]),
-            ),
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(top: 32),
-                        height: 360,
-                        child: Icon(
-                          Icons.home_outlined,
-                          size: 400,
-                          color: Colors.white,
-                        ),
+List<Widget> _buildScreens() {
+  return [
+    NotificationPage(
+      textAlert: textAlert,
+      descriptionNoti: descriptionNoti,
+      date: date,
+    ),
+    Stack(
+      children: [
+        Ink(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF31c5a3), Color(0xFFc0edcc)]),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(top: 32),
+                      height: 360,
+                      child: Icon(
+                        Icons.home_outlined,
+                        size: 400,
+                        color: Colors.white,
                       ),
-                      Positioned(
-                          top: 122,
-                          left: 155,
-                          child: Image.asset(
-                            'assets/icons/icon_lamp.png',
-                            width: 90,
-                            height: 100,
+                    ),
+                    Positioned(
+                        top: 122,
+                        left: 155,
+                        child: Image.asset(
+                          'assets/icons/icon_lamp.png',
+                          width: 90,
+                          height: 100,
+                        )),
+                    InkWell(
+                      onTap: () {
+                        Navigation.shared.toProfilePage(context);
+                      },
+                      child: Container(
+                          margin: EdgeInsets.only(top: 32, right: 16),
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white),
+                          child: Icon(
+                            Icons.person,
+                            color: ColorManager().primaryColor,
                           )),
-                      InkWell(
-                        onTap: () {
-                          Navigation.shared.toProfilePage(context);
-                        },
-                        child: Container(
-                            margin: EdgeInsets.only(top: 32, right: 16),
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white),
-                            child: Icon(
-                              Icons.person,
-                              color: ColorManager().primaryColor,
-                            )),
-                      )
-                    ],
-                  ),
-                  Text(
-                    'Refrigerator',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 40,
-                        color: Colors.white),
-                  )
-                ],
-              ),
+                    )
+                  ],
+                ),
+                Text(
+                  'Refrigerator',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 40,
+                      color: Colors.white),
+                )
+              ],
             ),
           ),
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              margin: EdgeInsets.only(top: 260),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      await getData();
-                      Navigation.shared.toTempDashBoard(
-                          context, "sensor1", dataSensor1, '', date1,);
-                    },
-                    child: Container(
-                      height: 120,
-                      padding: EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(0.0, 1.0), //(x,y)
-                            blurRadius: 6.0,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/icons/icon_temp.png',
-                            width: 30,
-                            height: 30,
-                            color: ColorManager().primaryColor,
-                          ),
-                          Text(
-                            'Refrigerator 1',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: ColorManager().primaryColor,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+        ),
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            margin: EdgeInsets.only(top: 260),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                InkWell(
+                  onTap: () async {
+                    await getData();
+                    Navigation.shared.toTempDashBoard(
+                      context, "sensor1", dataSensor1, '', date1,);
+                  },
+                  child: Container(
+                    height: 120,
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          offset: Offset(0.0, 1.0), //(x,y)
+                          blurRadius: 6.0,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/icons/icon_temp.png',
+                          width: 30,
+                          height: 30,
+                          color: ColorManager().primaryColor,
+                        ),
+                        Text(
+                          'Refrigerator 1',
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: ColorManager().primaryColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
-                  InkWell(
-                    onTap: () async {
-                      await getData();
-                      Navigation.shared.toTempDashBoard(
-                          context, "sensor2", '', dataSensor2, '');
-                    },
-                    child: Container(
-                      height: 120,
-                      padding: EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(0.0, 1.0), //(x,y)
-                            blurRadius: 6.0,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/icons/icon_temp.png',
-                            width: 30,
-                            height: 30,
-                            color: ColorManager().primaryColor,
-                          ),
-                          Text(
-                            'Refrigerator 2',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: ColorManager().primaryColor,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                ),
+                InkWell(
+                  onTap: () async {
+                    await getData();
+                    Navigation.shared.toTempDashBoard(
+                      context, "sensor2", '', dataSensor2, '');
+                  },
+                  child: Container(
+                    height: 120,
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          offset: Offset(0.0, 1.0), //(x,y)
+                          blurRadius: 6.0,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/icons/icon_temp.png',
+                          width: 30,
+                          height: 30,
+                          color: ColorManager().primaryColor,
+                        ),
+                        Text(
+                          'Refrigerator 2',
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: ColorManager().primaryColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          )
-        ],
-      ),
-      SettingPage()
-    ];
-  }
+          ),
+        )
+      ],
+    ),
+    ChartPage(), // เปลี่ยนจาก SettingPage เป็น ChartPage
+    SettingPage(), // เปลี่ยนจาก ChartPage เป็น SettingPage
+  ];
+}
+
 
   ///icon ของตัว tabbar
-  List<PersistentBottomNavBarItem> _navBarsItems() {
-    return [
-      PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.bell_fill),
-        title: ("Notifications"),
-        activeColorPrimary: ColorManager().primaryColor,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+ List<PersistentBottomNavBarItem> _navBarsItems() {
+  return [
+    PersistentBottomNavBarItem(
+      icon: Icon(CupertinoIcons.bell_fill),
+      title: ("Notifications"),
+      activeColorPrimary: ColorManager().primaryColor,
+      inactiveColorPrimary: CupertinoColors.systemGrey,
+    ),
+    PersistentBottomNavBarItem(
+      icon: Icon(
+        CupertinoIcons.home,
+        color: CupertinoColors.inactiveGray, // เปลี่ยนจาก Colors.white
       ),
-      PersistentBottomNavBarItem(
-        icon: Icon(
-          CupertinoIcons.home,
-          color: Colors.white,
-        ),
-        title: ("Home"),
-        activeColorPrimary: notSelect
-            ? CupertinoColors.systemGrey
-            : ColorManager().primaryColor,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.settings),
-        title: ("Settings"),
-        activeColorPrimary: ColorManager().primaryColor,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
-    ];
-  }
+      title: ("Home"),
+      activeColorPrimary: notSelect
+          ? CupertinoColors.systemGrey
+          : ColorManager().primaryColor,
+      inactiveColorPrimary: CupertinoColors.systemGrey,
+    ),
+    PersistentBottomNavBarItem(
+      icon: Icon(CupertinoIcons.chart_bar),
+      title: ("Chart"),
+      activeColorPrimary: ColorManager().primaryColor,
+      inactiveColorPrimary: CupertinoColors.systemGrey,
+    ),
+    PersistentBottomNavBarItem(
+      icon: Icon(CupertinoIcons.settings),
+      title: ("Settings"),
+      activeColorPrimary: ColorManager().primaryColor,
+      inactiveColorPrimary: CupertinoColors.systemGrey,
+    ),
+  ];
+}
 }

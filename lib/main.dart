@@ -1,44 +1,46 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:tempapp/NotificationManager.dart';
 import 'package:tempapp/appManager/firebase_manager.dart';
 import 'package:tempapp/splash_screen.dart';
-import 'appManager/firebase_option.dart';
-import 'appManager/view_manager.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'appManager/firebase_option.dart';
+import 'appManager/view_manager.dart';
+
 Future<void> main() async {
-  ///การ set firebase
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  ///การ set timezone
+  NotificationManager.initialize(); // เรียกใช้ฟังก์ชันการตั้งค่า Notification
   tzdata.initializeTimeZones();
   final location = tz.getLocation('Asia/Bangkok');
   tz.setLocalLocation(location);
+
+  runApp(const MyApp());
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Temp Application',
       debugShowCheckedModeBanner: false,
       locale: Locale('th', 'TH'),
-      home: MyHomePage(title: 'TempApp'),
+      home: const MyHomePage(title: 'TempApp'),
       navigatorKey: GlobalVariable.navState,
       theme: ThemeData(
         fontFamily: "Prompt",
         primaryColor: ColorManager().primaryColor,
-        colorScheme: ThemeData()
-            .colorScheme
-            .copyWith(primary: ColorManager().primaryColor),
+        colorScheme: ThemeData().colorScheme.copyWith(
+          primary: ColorManager().primaryColor,
+        ),
       ),
     );
   }
@@ -57,6 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    RealtimeDatabase.dataTempSensorOnChildChanged(); // สมัครรับการเปลี่ยนแปลงข้อมูล
+    NotificationManager.showNotification("Test Notification", "This is a test notification"); // ทดสอบการแจ้งเตือน
   }
 
   @override
@@ -66,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return SplashScreen();
+    return const SplashScreen();
   }
 }
 
