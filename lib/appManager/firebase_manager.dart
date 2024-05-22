@@ -75,45 +75,33 @@ class RealtimeDatabase {
         : null;
 
     if (dataOnValue > maxTemp) {
-      bool shouldNotify = true;
-      if (lastHighTempNotification != null && now.difference(lastHighTempNotification).inMinutes < 5) {
-        shouldNotify = false;
-      }
-      if (shouldNotify) {
-        NotiModel dataNoti = NotiModel(
-          title: "แจ้งเตือนอุณหภูมิ $sensorName",
-          description:
-              "อุณหภูมิสูง\nค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
-          dateInput: TimeManager.timeTriggerValue,
-        );
-        await LocalStorageManager.saveNotiData(dataNoti);
-        NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
-        _showAlertDialogError(
-            'อุณหภูมิสูง $sensorName',
-            "ค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
-            CupertinoColors.systemRed);
-        prefs.setString(lastHighTempKey, now.toIso8601String());
-      }
+      NotiModel dataNoti = NotiModel(
+        title: "แจ้งเตือนอุณหภูมิ $sensorName",
+        description:
+            "อุณหภูมิสูง\nค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+        dateInput: TimeManager.timeTriggerValue,
+      );
+      await LocalStorageManager.saveNotiData(dataNoti);
+      NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
+      _showAlertDialogError(
+          'อุณหภูมิสูง $sensorName',
+          "ค่าที่ตั้งไว้: $maxTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+          CupertinoColors.systemRed);
+      prefs.setString(lastHighTempKey, now.toIso8601String());
     } else if (dataOnValue < minTemp) {
-      bool shouldNotify = true;
-      if (lastLowTempNotification != null && now.difference(lastLowTempNotification).inMinutes < 5) {
-        shouldNotify = false;
-      }
-      if (shouldNotify) {
-        NotiModel dataNoti = NotiModel(
-          title: "แจ้งเตือนอุณหภูมิ $sensorName",
-          description:
-              "อุณหภูมิต่ำ\nค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
-          dateInput: TimeManager.timeTriggerValue,
-        );
-        await LocalStorageManager.saveNotiData(dataNoti);
-        NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
-        _showAlertDialogError(
-            'อุณหภูมิต่ำ $sensorName',
-            "ค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
-            CupertinoColors.systemYellow);
-        prefs.setString(lastLowTempKey, now.toIso8601String());
-      }
+      NotiModel dataNoti = NotiModel(
+        title: "แจ้งเตือนอุณหภูมิ $sensorName",
+        description:
+            "อุณหภูมิต่ำ\nค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+        dateInput: TimeManager.timeTriggerValue,
+      );
+      await LocalStorageManager.saveNotiData(dataNoti);
+      NotificationManager.showNotification(dataNoti.title!, dataNoti.description!);
+      _showAlertDialogError(
+          'อุณหภูมิต่ำ $sensorName',
+          "ค่าที่ตั้งไว้: $minTemp °C\nอุณหภูมิขณะนี้: $dataOnValue °C",
+          CupertinoColors.systemYellow);
+      prefs.setString(lastLowTempKey, now.toIso8601String());
     }
   }
 

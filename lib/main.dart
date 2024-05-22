@@ -21,7 +21,6 @@ Future<void> main() async {
   tz.setLocalLocation(location);
 
   runApp(const MyApp());
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -60,7 +59,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     RealtimeDatabase.dataTempSensorOnChildChanged(); // สมัครรับการเปลี่ยนแปลงข้อมูล
-    NotificationManager.showNotification("Test Notification", "This is a test notification"); // ทดสอบการแจ้งเตือน
   }
 
   @override
