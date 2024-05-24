@@ -42,23 +42,39 @@ class RealtimeDatabase {
     });
   }
 
-  static dataTempSensorOnChildChanged() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    realTimeDataBaseDomain.ref('data/data').onChildChanged.listen((event) async {
-      int maxTempSensor1 = int.parse(prefs.getString('MAXVALUETEMP1') ?? "0");
-      int minTempSensor1 = int.parse(prefs.getString('MINVALUETEMP1') ?? "0");
-      int maxTempSensor2 = int.parse(prefs.getString('MAXVALUETEMP2') ?? "0");
-      int minTempSensor2 = int.parse(prefs.getString('MINVALUETEMP2') ?? "0");
-      
-      if (event.snapshot.key == "sensor1") {
-        int dataOnValue1 = int.parse(event.snapshot.value.toString());
-        await checkTemperatureNotification(dataOnValue1, maxTempSensor1, minTempSensor1, "sensor1", "Refrigerator 1");
-      } else if (event.snapshot.key == "sensor2") {
-        int dataOnValue2 = int.parse(event.snapshot.value.toString());
-        await checkTemperatureNotification(dataOnValue2, maxTempSensor2, minTempSensor2, "sensor2", "Refrigerator 2");
+static dataTempSensorOnChildChanged() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  realTimeDataBaseDomain.ref('data/data').onChildChanged.listen((event) async {
+    // แก้ไขค่าตั้งต้นเป็นค่าว่าง
+    String? maxTempSensor1Str = prefs.getString('MAXVALUETEMP1');
+    String? minTempSensor1Str = prefs.getString('MINVALUETEMP1');
+    String? maxTempSensor2Str = prefs.getString('MAXVALUETEMP2');
+    String? minTempSensor2Str = prefs.getString('MINVALUETEMP2');
+
+    if (event.snapshot.key == "sensor1") {
+      // ตรวจสอบค่าที่ตั้งไว้ก่อนแปลงเป็น int
+      if (maxTempSensor1Str == null || minTempSensor1Str == null) {
+        print('Error: Temperature thresholds for sensor1 are not set.');
+        return;
       }
-    });
-  }
+      int maxTempSensor1 = int.parse(maxTempSensor1Str);
+      int minTempSensor1 = int.parse(minTempSensor1Str);
+      int dataOnValue1 = int.parse(event.snapshot.value.toString());
+      await checkTemperatureNotification(dataOnValue1, maxTempSensor1, minTempSensor1, "sensor1", "Refrigerator 1");
+    } else if (event.snapshot.key == "sensor2") {
+      // ตรวจสอบค่าที่ตั้งไว้ก่อนแปลงเป็น int
+      if (maxTempSensor2Str == null || minTempSensor2Str == null) {
+        print('Error: Temperature thresholds for sensor2 are not set.');
+        return;
+      }
+      int maxTempSensor2 = int.parse(maxTempSensor2Str);
+      int minTempSensor2 = int.parse(minTempSensor2Str);
+      int dataOnValue2 = int.parse(event.snapshot.value.toString());
+      await checkTemperatureNotification(dataOnValue2, maxTempSensor2, minTempSensor2, "sensor2", "Refrigerator 2");
+    }
+  });
+}
+
 
   static Future<void> checkTemperatureNotification(int dataOnValue, int maxTemp, int minTemp, String sensorKey, String sensorName) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

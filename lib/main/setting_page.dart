@@ -157,8 +157,8 @@ class _SettingPageState extends State<SettingPage> {
             onPressed: () async {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               LocalStorageManager.clearLoginData();
-              //LocalStorageManager.clearDataSensor1();
-              //LocalStorageManager.clearDataSensor2();
+              LocalStorageManager.clearDataSensor1();
+              LocalStorageManager.clearDataSensor2();
               LocalStorageManager.clearNotiData();
               RealtimeDatabase.refDataTemp1?.cancel();
               RealtimeDatabase.refDataTemp2?.cancel();

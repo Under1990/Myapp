@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
             errorMessage = 'การเข้าสู่ระบบด้วยวิธีนี้ถูกปิดใช้งาน';
             break;
           case 'invalid-credential':
-            errorMessage = 'ข้อมูลการยืนยันตัวตนไม่ถูกต้องหรือหมดอายุ';
+            errorMessage = 'ข้อมูลการยืนยันตัวตนไม่ถูกต้อง  หรือ ยังไม่มีบัญชี กรุณาลงทะเบียน';
             break;
           default:
             errorMessage = 'เกิดข้อผิดพลาด: ${e.message}';
